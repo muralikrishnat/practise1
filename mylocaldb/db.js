@@ -25,9 +25,25 @@ server.get('/rest/v1/db/a360/tables', function (req, res, next) {
     return next();
 });
 
+
 server.get('/rest/v1/db/a360/tables/hub', function (req, res, next) {
     var hubs = [];
     res.send(hubs);
+    return next();
+});
+
+server.post('/rest/v1/db/a360/tables/hub', function (req, res, next) {
+    res.send({"Method": "Post"});
+    return next();
+});
+
+server.put('/rest/v1/db/a360/tables/hub/:hubid', function (req, res, next) {
+    res.send({"Method": "Put"});
+    return next();
+});
+
+server.del('/rest/v1/db/a360/tables/hub/:hubid', function (req, res, next) {
+    res.send({"Method": "Delete"});
     return next();
 });
 
