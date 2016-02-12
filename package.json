@@ -2,6 +2,7 @@
   "name": "application-name",
   "version": "0.0.1",
   "devDependencies": {
+    "jsonfile": "^2.2.3",
     "restify": "^4.0.3"
   },
   "scripts": {

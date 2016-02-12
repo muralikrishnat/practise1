@@ -16,7 +16,7 @@ window.App = (function () {
                     .toString(16)
                     .substring(1);
             }
-            return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + '-' + (new Date).getTime();
+            return s4() + s4() + s4() + s4() + s4() + s4() + (new Date).getTime().toString(16);
         };
 
         var bindSocketEvents = function (sckt) {
@@ -69,3 +69,6 @@ window.App = (function () {
     return new app();
 
 })();
+
+
+//$.ajax({url: 'https://developer-stg.api.autodesk.com/viewingservice/v1/dXJuOmFkc2sud2lwcWE6ZnMuZmlsZTp2Zi5MdF9lOUpFVFJZYTlmc2k1cld3RjN3P3ZlcnNpb249MQ?nocache=true&showProgress=false', method: 'GET', xhrFields: { withCredentials : true }, headers: { "x-ads-acm-check-groups": false, "x-ads-acm-groups" :null, "x-ads-acm-namespace": "WIPDMSecured" } });

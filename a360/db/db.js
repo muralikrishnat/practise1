@@ -43,10 +43,7 @@ BuStand.parse = function (strObject) {
 
 var connectionArray = [];
 
-var ConnectionObject = function (g, c, u) {
-    this.Guid = g;
-    this.connection = c;
-    this.UserID = u;
+var ConnectionObject = function () {
 };
 
 
@@ -58,6 +55,7 @@ var multiparty = require('multiparty');
 var formidable = require('formidable');
 var util = require('util');
 
+var M = require('./lib/util.js');
 var cookie = require('cookie');
 
 var authenticateUser = function (isPost, req, res) {
@@ -96,7 +94,7 @@ var authenticateUser = function (isPost, req, res) {
 
                 var uname = fields.name, pwd = fields.pwd;
                 resObject.tokenObject = {};
-                resObject.tokenObject.token = guid(true);
+                resObject.tokenObject.token = guid();
                 headers['Set-Cookie'] = 'atkn=' + resObject.tokenObject.token;
                 res.writeHead(200, headers);
                 res.end(JSON.stringify(resObject));
@@ -107,6 +105,20 @@ var authenticateUser = function (isPost, req, res) {
     }
 };
 
+var makerequestold = function (headers) {
+    headers['Set-Cookie'] = 'cuid=' + Util.guid();
+    return headers;
+};
+
+var isNewRequest = function (req) {
+    if(req.headers && req.headers.cookie){
+        var reqCookies = cookie.parse(req.headers.cookie);
+        if(reqCookies.cuid){
+            return false;
+        }
+    }
+    return true;
+};
 
 
 var server = http.createServer(function(req, res) {
@@ -115,18 +127,34 @@ var server = http.createServer(function(req, res) {
     headers['Access-Control-Allow-Origin'] = 'http://localhost:3434';
     headers['Access-Control-Allow-Credentials'] = true;
 
-    if(req.url.indexOf('/authenticate') >= 0){
-        authenticateUser(req.method.toLowerCase() == 'post', req, res);
-    }else if(req.url.indexOf('/requestVerificationToken') >= 0){
-        var verificationObject = {};
-        verificationObject.token = guid(true);
-        res.writeHead(200, headers);
-        res.end(JSON.parse(verificationObject));
-    }else {
-        headers['content-type'] = 'text/plain';
-        res.writeHead(200, headers);
-        res.end(JSON.stringify(req.headers));
+    if(isNewRequest(req)){
+        makerequestold(headers);
     }
+    res.writeHead(200, headers);
+    res.end(JSON.stringify({"Msg": "You are new one!!!!!!!!"}));
+
+    //if (req.headers && req.headers.cookie) {
+    //    var reqCookies = cookie.parse(req.headers.cookie);
+    //    if(reqCookies.cuid){
+    //        //already request came in
+    //        headers['content-type'] = 'text/plain';
+    //        res.writeHead(200, headers);
+    //        res.end(JSON.stringify({"Msg": "You are old one!!!!!!!!"}));
+    //    }else{
+    //        handleNewRequest(res, headers);
+    //    }
+    //}else {
+    //    if (req.url.indexOf('/authenticate') >= 0) {
+    //        authenticateUser(req.method.toLowerCase() == 'post', req, res);
+    //    } else if (req.url.indexOf('/requestVerificationToken') >= 0) {
+    //        var verificationObject = {};
+    //        verificationObject.token = guid(true);
+    //        res.writeHead(200, headers);
+    //        res.end(JSON.parse(verificationObject));
+    //    } else {
+    //        handleNewRequest(res, headers);
+    //    }
+    //}
 });
 server.listen(5654, function() {
     console.log((new Date()) + ' Server is listening on port 5654');
@@ -175,54 +203,4 @@ wsServer.on('request', function(request) {
         //connectionArray.push(new ConnectionObject(guid(), connection,))
         connection.sendUTF(guid());
     }
-    //function sendNumber() {
-    //    if (connection.connected) {
-    //        var number = Math.round(Math.random() * 0xFFFFFF);
-    //        connection.sendUTF(number.toString());
-    //        setTimeout(sendNumber, 1500);
-    //    }
-    //}
-    //sendNumber();
 });
-
-
-
-
-//var restify = require('restify');
-//
-//var LRU = require('lrucache');
-//var lrucache = LRU();
-//var fs = require('fs');
-//
-//
-//var server = restify.createServer({
-//    name: 'mydb',
-//    version: '1.0.0'
-//});
-//
-//
-//server.use(restify.acceptParser(server.acceptable));
-//server.use(restify.queryParser());
-//server.use(restify.bodyParser());
-//
-//
-//server.get('/', function (req, res, next) {
-//    //fs.writeFile('data/hubs.json', JSON.stringify({ "Id": "234324234-23423423-234-23-4234", "Name": "gmail2345"}), function(err) {
-//    //    if (err) throw err;
-//    //    console.log('It\'s saved!');
-//    //});
-//
-//    fs.readFile('data/hubs.json', 'utf8',  function (err, data) {
-//        console.log(data);
-//        var resData = JSON.parse(data);
-//        res.send(resData);
-//    });
-//
-//    return next();
-//});
-//
-//
-//
-//server.listen(7867, function () {
-//    console.log('%s listening at %s', server.name, server.url);
-//});
