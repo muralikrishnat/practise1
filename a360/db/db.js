@@ -6,6 +6,7 @@ var Utl = require('./lib/util.js');
 
 var routings = [];
 
+
 var authenticateUserRoute = function (req, res, headers) {
     var resObject = {}, reqCookies = Utl.getCookies(req);
     if(reqCookies.atkn){

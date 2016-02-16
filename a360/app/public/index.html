@@ -5,33 +5,15 @@
     <title>A360 App</title>
 </head>
 <body>
-    <div class="container-app"></div>
+<div class="container-app"></div>
 
-    <div class="login-form">
-        <input type="text" name="uname" />
-        <input type="password" name="pwd" />
-        <input type="button" value=" Login " class="btn-action" data-action="Login" />
-    </div>
+<script src="http://localhost:3434/js/vendor/jquery.js"></script>
+<script src="http://localhost:3434/js/vendor/lodash.js"></script>
+<script src="http://localhost:3434/js/app.js"></script>
+<script>
+    $(document).ready(function () {
 
-    <script src="js/vendor/jquery.js"></script>
-    <script src="js/app.js"></script>
-    <script>
-        $(document).ready(function () {
-            //App.init();
-
-            $('.btn-action').click(function (e) {
-
-                var actionToPerform = $(this).attr('data-action');
-                if(actionToPerform === "Login") {
-                    var actionData = {};
-                    actionData.UName = $('input[name="uname"]').val();
-                    actionData.Pwd = $('input[name="pwd"]').val();
-                }
-                App.performAction(actionToPerform, actionData).then(function (err, actionStatus) {
-
-                });
-            });
-        });
-    </script>
+    });
+</script>
 </body>
 </html>

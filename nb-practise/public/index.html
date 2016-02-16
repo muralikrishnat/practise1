@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>A360 App</title>
+</head>
+<body>
+<div class="container-app">
+    <div>
+        <ul>
+            <li><a href="javascript:App.navigateTo('/home')">Home</a> </li>
+            <li><a href="javascript:App.navigateTo('/aboutus')">About US</a> </li>
+            <li><a href="javascript:App.navigateTo('/contactus')">Contact US</a> </li>
+            <li><a href="javascript:App.navigateTo('/services')">Services</a> </li>
+        </ul>
+    </div>
+</div>
+
+<script src="http://localhost:2426/js/vendor/jquery.js"></script>
+<script src="http://localhost:2426/js/vendor/lodash.js"></script>
+<script src="http://localhost:2426/js/vendor/routing.js"></script>
+<script src="http://localhost:2426/js/app.js"></script>
+<script>
+    $(document).ready(function () {
+        if(App){
+            App.init();
+        }
+    });
+</script>
+</body>
+</html>
