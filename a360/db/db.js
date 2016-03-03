@@ -150,6 +150,41 @@ var fallBackRoute = function (req, res, headers) {
 routings.push(new Utl.RouteClass('/authenticate', authenticateUserRoute));
 routings.push(new Utl.RouteClass('/api', apiHandler));
 
+
+var tableRequestHandler = function (req, res, headers) {
+    var resObject = {};
+    if(this.tName){
+        var tName = this.tName;
+        var reqPromise = null;
+        switch (req.method.toUpperCase()){
+            case 'GET':
+                reqPromise = Utl.DB.getTable(tName);
+                break;
+            case 'POST':
+                break;
+            case 'DELETE':
+                break;
+        }
+
+        if(reqPromise){
+            reqPromise.then(function (tData) {
+                resObject.Body = tData;
+                Utl.sendResObject(res, headers, resObject);
+            });
+        }else{
+            Utl.sendResObject(res, headers, resObject);
+        }
+    }else{
+        Utl.sendResObject(res, headers, resObject);
+    }
+
+};
+
+Utl.DB.Tables.forEach(function (lItem) {
+    routings.push(new Utl.RouteClass('/table/' + lItem.toLowerCase(), tableRequestHandler.bind({ tName: lItem})));
+});
+
+
 var server = http.createServer(function(req, res) {
     var headers = {};
 

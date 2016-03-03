@@ -107,23 +107,34 @@ DB.getTable = function (tName) {
 };
 
 DB.addTableRow = function (tName, tRowObj) {
-    var tableData = DB.cache.get(tName);
-    if(tableData){
-        tableData.list.push(tRowObj);
-    }
+    return new Promise(function (resolve, reject) {
+        var tableData = DB.cache.get(tName);
+        if(tableData){
+            tableData.list.push(tRowObj);
+            resolve({ IsSuccess: true});
+        }else{
+            resolve({ IsSuccess: false});
+        }
+    });
+
 };
 
 DB.updateTableRow = function (tName, tRowObj) {
-    var tableData = DB.cache.get(tName);
-    if(tableData){
-        for(var i =0; i< tableData.list.length; i++){
-            var lItem = tableData.list[i];
-            if(lItem.Id && lItem.Id === tRowObj.Id){
-                tableData.list[i] = tRowObj;
-                break;
+    return new Promise(function (resolve, reject) {
+        var tableData = DB.cache.get(tName);
+        if (tableData) {
+            for (var i = 0; i < tableData.list.length; i++) {
+                var lItem = tableData.list[i];
+                if (lItem.Id && lItem.Id === tRowObj.Id) {
+                    tableData.list[i] = tRowObj;
+                    break;
+                }
             }
+            resolve({ IsSuccess: true});
+        }else{
+            resolve({ IsSuccess: false});
         }
-    }
+    });
 };
 
 var removeEmptyList = function (lst) {
@@ -133,21 +144,27 @@ var removeEmptyList = function (lst) {
 };
 
 DB.deleteTableRow = function (tName, tRowObj) {
-    var tableData = DB.cache.get(tName);
-    if(tableData){
-        var dIndex = null;
-        for(var i =0; i< tableData.list.length; i++){
-            var lItem = tableData.list[i];
-            if(lItem.Id && lItem.Id === tRowObj.Id){
-                dIndex = i;
-                break;
+    return new Promise(function (resolve, reject) {
+        var tableData = DB.cache.get(tName);
+        if(tableData){
+            var dIndex = null;
+            for(var i =0; i< tableData.list.length; i++){
+                var lItem = tableData.list[i];
+                if(lItem.Id && lItem.Id === tRowObj.Id){
+                    dIndex = i;
+                    break;
+                }
             }
+            if(dIndex){
+                delete tableData.list[dIndex];
+                tableData.list = removeEmptyList(tableData.list);
+            }
+            resolve({ IsSuccess: true});
+        }else{
+            resolve({ IsSuccess: false});
         }
-        if(dIndex){
-            delete tableData.list[dIndex];
-            tableData.list = removeEmptyList(tableData.list);
-        }
-    }
+    });
+
 };
 
 DB.writeTable = function (tName, tData) {

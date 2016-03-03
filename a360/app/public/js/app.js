@@ -37,3 +37,9 @@ var updateTable = function (tableName, tableObj) {
     aObj.aBody = JSON.stringify(tableObj);
     makeRequest('http://localhost:5654/api', aObj, {});
 };
+
+
+
+// http : GET,POST
+
+// updateTable

@@ -1,0 +1,1 @@
+var practiseApp = angular.module('practiseapp', ['ngRoute']);
