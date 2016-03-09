@@ -126,6 +126,7 @@ DB.updateTableRow = function (tName, tRowObj) {
             for (var i = 0; i < tableData.list.length; i++) {
                 var lItem = tableData.list[i];
                 if (lItem.Id && lItem.Id === tRowObj.Id) {
+                    console.log('Keys : ', Object.keys((tRowObj)));
                     tableData.list[i] = tRowObj;
                     break;
                 }

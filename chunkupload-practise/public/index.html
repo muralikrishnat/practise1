@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chunk File Upload</title>
+</head>
+<body>
+<div>This is practise for chunk file upload</div>
+<div>
+    <input type="file" onchange="handleFileUpload(event)">
+</div>
+
+<script src="js/vendor/jquery.js"></script>
+
+<script>
+
+    var getUploadToken = function (fileName) {
+
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            var formData = new FormData();
+            formData.append('fileName', fileName);
+            xhr.open("POST", "http://localhost:5654/upload/resumable?fileName=" + fileName, true);
+        });
+    };
+
+
+    var fileUploadCall = function (fileName, Data) {
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:5654/upload/resumable?fileName=" + fileName, true);
+
+        //xhr.method = "POST";
+        //xhr.url = "http://localhost:5654/upload/resumable?fileName=" + fileName;
+        xhr.onload = function () {
+            console.log("upload completed");
+        };
+
+        xhr.onerror = function () {
+
+        };
+
+        xhr.headers = {};
+        xhr.send(Data);
+    };
+
+    var handleFileUpload = function (evt) {
+        var files = evt.target.files;
+        console.log('file is ', new Date(), files[0]);
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+            var chunkSize = 1000;
+            var _file = files[0];
+            var fileSize = _file.size;
+            var chunksCount = Math.ceil(fileSize / chunkSize);
+
+
+        } else {
+            alert('The File APIs are not fully supported by your browser.');
+        }
+    };
+
+
+    var handleFileUpload_old = function (evt) {
+        var files = evt.target.files;
+        console.log('file is ', new Date(), files[0]);
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+            var r = new FileReader();
+//            r.onload = function (e) {
+//                var contents = e.target.result;
+//                //vrt = contents;
+////                fileUploadCall(encodeURIComponent(files[0].name), contents);
+//                //fileUploadCall(encodeURIComponent(files[0].name), this.result);
+//                console.log("completed content translation into url data",  new Date());
+//            };
+
+            var StartPosition = 0;
+            var EndPosition = files[0].size;
+
+            console.log();
+            //var blob = files[0].slice(StartPosition, 2000);
+            //r.readAsArrayBuffer(blob);
+            //r.readAsText(blob);
+            //r.readAsDataURL(files[0]);
+
+
+
+        } else {
+            alert('The File APIs are not fully supported by your browser.');
+        }
+    };
+
+
+
+
+</script>
+</body>
+</html>

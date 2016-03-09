@@ -1,0 +1,16 @@
+<div>
+    <div ng-if="AddDiscussionFlag == false">
+        <input type="button" value=" Add Discussion " ng-click="openAddDiscussion()" />
+    </div>
+    <div class="add-discussion-section" ng-if="AddDiscussionFlag == true">
+        <input type="text" ng-model="DiscussionContent" />
+        <input type="button" ng-click="addDiscussion(true, DiscussionContent)" value="Submit" />
+        <input type="button" ng-click="addDiscussion(false)" value="Cancel" />
+    </div>
+    <div ng-if="isLoading == true">Loading...</div>
+    <ul ng-if="isLoading == false">
+        <li ng-repeat="discussionItem in Discussions">
+            <div><a href="" ng-click="deleteDiscussion(discussionItem)">Delete </a>{{discussionItem.Content}}</div>
+        </li>
+    </ul>
+</div>

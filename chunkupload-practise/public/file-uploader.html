@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chunk Upload Practise</title>
+    <style>
+        .file-list, .chunk-list{
+            list-style: none;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <input type="file" multiple onchange="handleFileUpload(event)" />
+</div>
+<div>
+    <div>
+        <h4>Files</h4>
+        <ul class="file-list">
+            <li></li>
+        </ul>
+
+    </div>
+    <div>
+        <h4>Chunk List</h4>
+        <ul class="chunk-list">
+
+        </ul>
+    </div>
+</div>
+<script src="js/vendor/jquery.js"></script>
+<script src="js/vendor/lodash.js"></script>
+<script >
+    var UploadManager =new (function () {
+        this.FileList = [];
+
+        var guid = function(len) {
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000)
+                        .toString(16)
+                        .substring(1);
+            }
+            if(len == 8){
+                return s4() + s4();
+            }
+            return s4() + s4() + s4() + s4() + s4() + s4() + (new Date).getTime().toString(16);
+        };
+
+        this.progressRequestCount = 0;
+        this.maxRequestCount = 4;
+
+        this.ChunkSize = 300;
+
+        this.IsProgress = false;
+
+        var FileSizes = {"MB1": 1048576, "MB5": 5242880, "MB10": 10485760, "MB20": 20971520, "MB25": 26214400};
+
+        this.decideChunkSize = function (fileSize) {
+
+            //return FileSizes.MB1 * 10;
+            //return 300;
+            return FileSizes.MB1;
+
+            if(fileSize >= (FileSizes.MB1 * 100)){
+                return FileSizes.MB25;
+            }
+
+            if(fileSize >= (FileSizes.MB1 * 50) && fileSize < (FileSizes.MB1 * 100)){
+                return FileSizes.MB20;
+            }
+
+            if(fileSize >= (FileSizes.MB1 * 10) && fileSize < (FileSizes.MB1 * 50)){
+                return FileSizes.MB10;
+            }
+
+            if(fileSize >= (FileSizes.MB1 * 1) && fileSize < (FileSizes.MB1 * 10)){
+                return FileSizes.MB1;
+            }
+
+            return FileSizes.MB25;
+        };
+
+
+
+        var that =this;
+        this.STATUS_CODES = { "READY": "READY", "UPLOADING": "UPLOADING", "DONE": "DONE" , "FAILED": "FAILED"};
+
+        this.ChunkList = [];
+
+        var UploadFile = function (file) {
+            this._file = file;
+            this.Size = file.size;
+            this.Name = file.name;
+
+            this.Status = that.STATUS_CODES.READY;
+            this.UploadedBytes = 0;
+
+            this.fToken = file.fToken;
+        };
+
+        this.upload = function (files, fileCallback, chunkCallback) {
+            files.forEach(function (fileItem) {
+                fileItem.fToken = guid();
+                var uploadItem = new UploadFile(fileItem);
+
+                that.FileList.push(uploadItem);
+                if(fileCallback && fileCallback instanceof Function){
+                    fileCallback(uploadItem);
+                }
+            });
+
+            files.forEach(function (fileItem) {
+                that.prepareChunks(fileItem, chunkCallback);
+            });
+        };
+
+        var ChunkClass = function (s, cs, cd, fn, ci, ft, cb, tcc) {
+            this.StartPosition = s;
+            this.ChunkSize = cs;
+
+            this.ChunkData = cd;
+            this.fileName = fn;
+            this.ChunkIndex = ci;
+
+            this.fToken = ft;
+
+            this.Status = that.STATUS_CODES.READY;
+
+            this.chunkCallback = cb;
+            this.chunkCount = tcc;
+
+        };
+
+        var addChunk = function (e) {
+            var contents = e.target.result;
+            if (e.target.readyState == FileReader.DONE) {
+                console.log('total chunk count is : ',this.chunkCount);
+                var chunkItem = new ChunkClass(this.startPosition, this.bytesToRead, contents, this.fileName, this.index, this.fToken);
+                chunkItem.chunkCallback = this.chunkCallback;
+                chunkItem.chunkCount = this.chunkCount;
+                that.ChunkList.push(chunkItem);
+                var sumBy = 0;
+                _.filter(UploadManager.ChunkList, { "fToken": this.fToken}).forEach(function(g){ sumBy += g. ChunkSize;  });
+                if(this.chunkCallback){
+                    this.chunkCallback(chunkItem);
+                }
+
+                that.processNextChunk();
+            }
+        };
+
+
+        this.prepareChunks = function (fileToBeChunked, chunkCallback) {
+            var fileSize = fileToBeChunked.size;
+            var chunkSize = that.decideChunkSize(fileSize);
+            var chunkCount = Math.ceil(fileSize / chunkSize);
+            var startPosition = 0, endPosition = 0;
+            for (var i = 0; i < chunkCount; i++) {
+                startPosition = (i * chunkSize);
+                endPosition = startPosition + chunkSize;
+                if (endPosition > fileSize) {
+                    endPosition = fileSize;
+                }
+
+                var r = new FileReader();
+
+                var blob = fileToBeChunked.slice(startPosition, endPosition);
+                r.onload = addChunk.bind({
+                    index: i,
+                    startPosition: startPosition,
+                    fileName: fileToBeChunked.name,
+                    chunksCount: chunkCount,
+                    bytesToRead: (endPosition - startPosition),
+                    fToken: fileToBeChunked.fToken,
+                    chunkCallback: chunkCallback,
+                    totalSize : fileSize,
+                    chunkCount: chunkCount
+                });
+                r.readAsArrayBuffer(blob);
+                //r.readAsBinaryString(blob);
+            }
+        };
+
+        var makeRequest = function (fileContent, fileName, chunkIndex, chunkCount) {
+            return new Promise(function (resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "http://localhost:5654/upload/resumable?fileName=" + fileName + '&chunkIndex=' + chunkIndex + '&chunkCount=' + chunkCount, true);
+                xhr.onload = function () {
+                    resolve(null,{ xkr: xhr});
+                };
+
+                xhr.onerror = function (t) {
+                    resolve(t, {});
+                };
+
+                xhr.headers = {};
+                xhr.send(fileContent);
+            });
+
+        };
+        this.processNextChunk = function () {
+            var nextChunkToProcess = _.filter(that.ChunkList, function (g) {
+                return g.Status == that.STATUS_CODES.READY;
+            });
+            if(nextChunkToProcess.length > 0){
+                console.log("Progressing upload chunks ", that.progressRequestCount);
+                if(that.progressRequestCount < that.maxRequestCount) {
+                    that.progressRequestCount += 1;
+                    nextChunkToProcess = nextChunkToProcess[0];
+                    nextChunkToProcess.Status = that.STATUS_CODES.UPLOADING;
+                    nextChunkToProcess.chunkCallback(null, nextChunkToProcess);
+                    makeRequest(nextChunkToProcess.ChunkData, nextChunkToProcess.fileName, nextChunkToProcess.ChunkIndex, nextChunkToProcess.chunkCount).then(function (err, resp) {
+                        if (err) {
+                            nextChunkToProcess.Status = that.STATUS_CODES.FAILED;
+                        } else {
+                            nextChunkToProcess.Status = that.STATUS_CODES.DONE;
+                        }
+                        nextChunkToProcess.chunkCallback(null, nextChunkToProcess);
+                        that.progressRequestCount -= 1;
+                        that.processNextChunk();
+                    });
+                }else{
+                    console.log("Waiting for to upload que ");
+                }
+
+            }else{
+                that.IsProgress = false;
+            }
+        };
+
+        this.resume = function () {
+            if(!that.IsProgress) {
+                that.IsProgress = true;
+                this.processNextChunk();
+            }
+        };
+
+    })();
+</script>
+<script>
+    var renderList = function (isAdd) {
+        var $fileListContainer = $('.file-list');
+        var fileElementArray = [];
+        var fileItemTemplate = '<li><span data-field="Name"></span></li>';
+        if(isAdd) {
+            var $fileItem = $(fileItemTemplate);
+            $fileItem.find('[data-field="Name"]').text(isAdd.Name);
+            fileElementArray.push($fileItem);
+        }
+        $fileListContainer.append(fileElementArray);
+
+    };
+
+    var renderChunkList = function (isAdd, isUpdate) {
+        var $chunkListContainer = $('.chunk-list');
+        var chunkElementArray = [];
+        var chunkItemTemplate = '<li data-ftoken="" data-chunk-index=""><span data-field="Name"></span> <span data-field="Status"></span></li>';
+        if(isAdd){
+            var $chunkItem = $(chunkItemTemplate);
+            $chunkItem.find('[data-field="Name"]').text(isAdd.fileName);
+            $chunkItem.find('[data-field="Status"]').text(isAdd.Status);
+            $chunkItem.attr('data-ftoken', isAdd.fToken);
+            $chunkItem.attr('data-chunk-index', isAdd.ChunkIndex);
+            chunkElementArray.push($chunkItem);
+        }else if(isUpdate){
+            var existingElements = $chunkListContainer.find('[data-ftoken="' + isUpdate.fToken + '"][data-chunk-index="' + isUpdate.ChunkIndex + '"]');
+            if(existingElements.length > 0){
+                var chunkItem = existingElements[0];
+                $(chunkItem).find('[data-field="Status"]').text(isUpdate.Status);
+            }
+        }
+        $chunkListContainer.append(chunkElementArray);
+    };
+
+    var handleFileUpload = function (evt) {
+        var files = _.toArray(evt.target.files);
+        evt.target.value = null;
+        UploadManager.upload(files, renderList, renderChunkList);
+    }
+</script>
+</body>
+</html>
