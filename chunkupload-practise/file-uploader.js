@@ -1,8 +1,6 @@
 var http = require('http');
 var url = require('url');
 var _ = require('lodash');
-var formidable = require('formidable');
-var multipart = require('multipart');
 
 var fs = require('fs');
 
@@ -37,66 +35,56 @@ var parseQueryParams = function (req) {
     return qParams;
 };
 
-var bufferData = "";
-
 var bufferData = [];
 var bufferChunkCount = 0;
-var t = 0;
 var resumableHandler = function (req, res, headers) {
 
-    var resObject = { "Status": "Scucess"};
-    sendResObject(res, headers, resObject);
-    //req.setEncoding('binary'); // this
-    //
-    //var data = "";
-    //var qParams = parseQueryParams(req);
-    //
-    //req.on('data', function(chunk) {
-    //    return data += chunk;
-    //});
-    //
-    //
-    //req.on('end', function() {
-    //    var resObject = {};
-    //    resObject.Body = "Reading binary completed";
-    //    var fName = qParams.fileName;
-    //    if(qParams.chunkIndex){
-    //        fName = fName.substr(0, fName.lastIndexOf('.')) + '-' + qParams.chunkIndex + fName.substr(fName.lastIndexOf('.'))
-    //    }
-    //    //fs.writeFile(__dirname + '/files/' + fName, data, 'binary', function () {
-    //    //    sendResObject(res, headers, resObject);
-    //    //});
-    //
-    //    //fs.writeFile('test2.txt', data, 'binary', function () {
-    //    //    sendResObject(res, headers, resObject);
-    //    //});
-    //
-    //    bufferData[parseInt(qParams.chunkIndex)] = data;
-    //
-    //    console.log("Got the Chunk ", qParams.chunkIndex);
-    //
-    //    bufferChunkCount = bufferChunkCount + 1;
-    //
-    //    if(parseInt(qParams.chunkCount) == bufferChunkCount){
-    //        var fallBackCount = 0;
-    //        for(var i = 0; i < bufferData.length ; i++){
-    //            fs.appendFile(qParams.fileName, bufferData[i], 'binary', function (err) {
-    //                fallBackCount = fallBackCount + 1;
-    //                if(fallBackCount == bufferData.length){
-    //                    sendResObject(res, headers, resObject);
-    //                }
-    //            });
-    //        }
-    //    }else{
-    //        sendResObject(res, headers, resObject);
-    //    }
-    //
-    //
-    //});
-    //req.on('error', function(err) {
-    //    console.log("Error during HTTP request");
-    //    console.log(err.message);
-    //});
+    //var resObject = { "Status": "Scucess"};
+    //sendResObject(res, headers, resObject);
+    req.setEncoding('binary'); // this
+
+    var data = "";
+    var qParams = parseQueryParams(req);
+
+    req.on('data', function(chunk) {
+        return data += chunk;
+    });
+
+
+    req.on('end', function() {
+        var resObject = {};
+        resObject.Body = "Reading binary completed";
+        var fName = qParams.fileName;
+        if(qParams.chunkIndex){
+            fName = fName.substr(0, fName.lastIndexOf('.')) + '-' + qParams.chunkIndex + fName.substr(fName.lastIndexOf('.'))
+        }
+
+        bufferData[parseInt(qParams.chunkIndex)] = data;
+
+        console.log("Got the Chunk ", qParams.chunkIndex);
+
+        bufferChunkCount = bufferChunkCount + 1;
+
+        if(parseInt(qParams.chunkCount) == bufferChunkCount){
+            var fallBackCount = 0;
+            for(var i = 0; i < bufferData.length ; i++){
+                fs.appendFile(qParams.fileName, bufferData[i], 'binary', function (err) {
+                    fallBackCount = fallBackCount + 1;
+                    if(fallBackCount == bufferData.length){
+                        sendResObject(res, headers, resObject);
+                    }
+                });
+            }
+        }else{
+            sendResObject(res, headers, resObject);
+        }
+
+
+    });
+    req.on('error', function(err) {
+        console.log("Error during HTTP request");
+        console.log(err.message);
+    });
 
 
 };

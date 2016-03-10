@@ -57,10 +57,6 @@
 
         this.decideChunkSize = function (fileSize) {
 
-            //return FileSizes.MB1 * 10;
-            //return 300;
-            return FileSizes.MB1;
-
             if(fileSize >= (FileSizes.MB1 * 100)){
                 return FileSizes.MB25;
             }
@@ -73,7 +69,7 @@
                 return FileSizes.MB10;
             }
 
-            if(fileSize >= (FileSizes.MB1 * 1) && fileSize < (FileSizes.MB1 * 10)){
+            if(fileSize >= (FileSizes.MB1) && fileSize < (FileSizes.MB1 * 10)){
                 return FileSizes.MB1;
             }
 
@@ -186,11 +182,11 @@
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", "http://localhost:5654/upload/resumable?fileName=" + fileName + '&chunkIndex=' + chunkIndex + '&chunkCount=' + chunkCount, true);
                 xhr.onload = function () {
-                    resolve(null,{ xkr: xhr});
+                    resolve(null);
                 };
 
                 xhr.onerror = function (t) {
-                    resolve(t, {});
+                    resolve(t);
                 };
 
                 xhr.headers = {};
