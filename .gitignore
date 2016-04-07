@@ -1,2 +1,4 @@
 /node_modules/
+/lcms/public/samples
+/ckeditor-practise/public/editor
 .idea/*
