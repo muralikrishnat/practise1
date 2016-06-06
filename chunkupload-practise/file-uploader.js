@@ -23,8 +23,9 @@ var sendResObject = function (res, headers, resObject) {
 
 var parseQueryParams = function (req) {
     var qParams = {};
-    if(req.url.indexOf('?') >= 0){
-        var qPart = req.url.split('?')[1];
+    var url = req ? (req.url ? req.url: req): null;
+    if(url && url.indexOf('?') >= 0){
+        var qPart = url.split('?')[1];
         var qArray = qPart.split('&');
         qArray.forEach(function (lItem) {
             if(lItem.split('=')[1]) {
@@ -68,7 +69,7 @@ var resumableHandler = function (req, res, headers) {
         if(parseInt(qParams.chunkCount) == bufferChunkCount){
             var fallBackCount = 0;
             for(var i = 0; i < bufferData.length ; i++){
-                fs.appendFile(qParams.fileName, bufferData[i], 'binary', function (err) {
+                fs.appendFile('files/' + qParams.fileName, bufferData[i], 'binary', function (err) {
                     fallBackCount = fallBackCount + 1;
                     if(fallBackCount == bufferData.length){
                         sendResObject(res, headers, resObject);
@@ -128,7 +129,8 @@ var server = http.createServer(function(req, res) {
 });
 
 
-
-server.listen(config.port, function() {
-    console.log((new Date()) + ' Server is listening on port ' + config.port);
-});
+module.exports = function (port) {
+    server.listen(port, function () {
+        console.log((new Date()) + ' Server is listening on port ' + port);
+    });
+};

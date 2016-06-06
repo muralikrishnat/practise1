@@ -205,7 +205,7 @@
                     nextChunkToProcess = nextChunkToProcess[0];
                     nextChunkToProcess.Status = that.STATUS_CODES.UPLOADING;
                     nextChunkToProcess.chunkCallback(null, nextChunkToProcess);
-                    makeRequest(nextChunkToProcess.ChunkData, nextChunkToProcess.fileName, nextChunkToProcess.ChunkIndex, nextChunkToProcess.chunkCount).then(function (err, resp) {
+                    makeRequest(nextChunkToProcess.ChunkData, nextChunkToProcess.fToken + nextChunkToProcess.fileName.substr(nextChunkToProcess.fileName.lastIndexOf('.')), nextChunkToProcess.ChunkIndex, nextChunkToProcess.chunkCount).then(function (err, resp) {
                         if (err) {
                             nextChunkToProcess.Status = that.STATUS_CODES.FAILED;
                         } else {
